@@ -6,10 +6,11 @@ This is my collection of emulator implementations for (hopefully) various system
 Goals
 -----
 
--Chip8\n
--NES\n
--SNES\n
--GB\n
--GBC\n
--GBA\n
--DCPU-16
+-Chip8   
+-NES  
+-SNES   
+-GB   
+-GBC   
+-GBA   
+-DCPU-16   
+
