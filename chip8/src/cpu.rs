@@ -23,9 +23,16 @@ impl CPU {
 
     }
 
-    pub fn load_memory(&mut self) {
-        self.mem[0x200] = 0xA2;
-        self.mem[0x201] = 0xF0;
+    pub fn load_memory(&mut self, data: &[u8]) {
+        // Loads the rom into memory, one byte at a time
+        for (i, &byte) in data.iter().enumerate() {
+            let addr = 0x200 + i;
+            if addr < 4096 {
+                self.mem[0x200 + i] = byte;
+            } else {
+                break;
+            }
+        }
     }
     pub fn run_cycle(&mut self) {
         // Get the next opcode
@@ -39,5 +46,6 @@ impl CPU {
 
     fn execute_opcode(&mut self, opcode: u16) {
         println!("{}", opcode);
+        self.pc += 2;
     }
 }
