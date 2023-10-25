@@ -50,7 +50,8 @@ impl CPU {
             0x3000 => self.op_3xnn(opcode),
             0x4000 => self.op_4xnn(opcode),
             0x5000 => self.op_5xy0(opcode),
-            0x6000 => self.op_6xxx(opcode),
+            0x6000 => self.op_6xnn(opcode),
+            0x7000 => self.op_7xnn(opcode),
             _ => println!("Unimplemented opcode: {:X}", opcode)
         }
     }
@@ -111,9 +112,19 @@ impl CPU {
     
     // 6xnn - LD Vx, byte
     // Set Vx = nn.
-    fn op_6xxx(&mut self, opcode: u16) {
+    fn op_6xnn(&mut self, opcode: u16) {
         let x = ((opcode & 0x0F00) >> 8) as usize;
         let nn = (opcode & 0x00FF) as u8;
         self.v[x] = nn;
     }
+
+    // 7xnn - DD Vx, byte
+    //  Adds the value nn to the value of register Vx, then stores the result in Vx.
+    fn op_7xnn(&mut self, opcode: u16) {
+        let x = ((opcode & 0x0F00) >> 8) as usize;
+        let nn = (opcode & 0x00FF) as u8;
+        self.v[x] += nn;
+    }
+
+
 }
