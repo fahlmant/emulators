@@ -43,6 +43,7 @@ impl CPU {
     }
 
     fn execute_opcode(&mut self, opcode: u16) {
+        println!("OPCODE: {:X}", opcode);
         match opcode & 0xF000 {
             0x0000 => self.op_0nnn(opcode),
             0x1000 => self.op_1nnn(opcode),
@@ -52,6 +53,7 @@ impl CPU {
             0x5000 => self.op_5xy0(opcode),
             0x6000 => self.op_6xnn(opcode),
             0x7000 => self.op_7xnn(opcode),
+            0x8000 => self.op_8xyn(opcode),
             _ => println!("Unimplemented opcode: {:X}", opcode)
         }
     }
@@ -124,6 +126,65 @@ impl CPU {
         let x = ((opcode & 0x0F00) >> 8) as usize;
         let nn = (opcode & 0x00FF) as u8;
         self.v[x] += nn;
+    }
+
+    fn op_8xyn(&mut self, opcode: u16) {
+        let x = ((opcode & 0x0F00) >> 8) as usize;
+        let y = ((opcode & 0x00F0) >> 4)as usize;
+        let n = (opcode & 0x000F) as u16;
+
+        match n {
+            //  8xy0 - LD Vx, Vy
+            // Set Vx = Vy.
+            0 => self.v[x] = self.v[y],
+            // 8xy1 - OR Vx, Vy
+            // Set Vx = Vx OR Vy.
+            1 => self.v[x] |= self.v[y],
+            // 8xy2 - AND Vx, Vy
+            // Set Vx = Vx AND Vy
+            2 => self.v[x] &= self.v[y],
+            // 8xy3 - XOR Vx, Vy
+            // Set Vx = Vx XOR Vy
+            3 => self.v[x] ^= self.v[y],
+            // 8xy4 - ADD Vx, Vy
+            // Set Vx = Vx + Vy, set VF = cary
+            4 => {
+                let (result, overflow) = self.v[x].overflowing_add(self.v[y]);
+                match overflow {
+                    true => self.v[0xF] = 1,
+                    false => self.v[0xF] = 0,
+                }
+                self.v[x] = result;
+            },
+            // 8xy5 - Sub Vx, Vy
+            //  Set Vx = Vx - Vy, set VF if Vx is greater than Vy
+            5 => {
+                if self.v[x] > self.v[y] {
+                    self.v[0xF] = 1;
+                } else {
+                    self.v[0xF] = 0;
+                }
+                self.v[x] -= self.v[y];
+            },
+            // 8xy6 - SHR Vx {, Vy}
+            // Set Vx = Vx SHR 1, set VF to match least significant bit of Vx first
+            6 => {
+                self.v[0xF] = self.v[x] & 1;
+                self.v[x] >>= 1;
+            },
+            // 8xy7 SUBN Vx, Vy
+            // Set Vx = Vy - Vx, set VF if Vy is greater than Vx
+            7 => {
+                if self.v[y] > self.v[x] {
+                    self.v[0xF] = 1;
+                } else {
+                    self.v[0xF] = 0;
+                }
+                self.v[x] = self.v[y] - self.v[x]
+            }
+           _ => println!("Unimplemented opcode: {:X}", opcode)
+        }
+
     }
 
 
